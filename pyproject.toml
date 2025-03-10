@@ -1,0 +1,9 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "experiment_tracker"
+description = "A simple machine learning tracking library"
+version = "0.0.1"
+dependencies = ["pyyaml", "polars", "numpy", "ipykernel"]

@@ -1,0 +1,3 @@
+.venv
+.logs
+experiment_tracker.egg-info
