@@ -1,32 +1,54 @@
 from typing import Any
 import datetime
 import random
+import yaml
+import os
 
 
-class compare_fn:
+class compare_fns:
     @staticmethod
-    def greater(old: Any, new: Any) -> bool:
-        return new > old
+    def max(new: Any, old: Any = None) -> Any:
+        if old is None:
+            return new
+        return new if new > old else old
 
     @staticmethod
-    def lesser(old: Any, new: Any) -> bool:
-        return new < old
+    def min(new: Any, old: Any = None) -> Any:
+        if old is None:
+            return new
+        return new if new < old else old
+
+
+def update_yaml(file_path, new_data):
+    if os.path.isfile(file_path):
+        with open(file_path, "r") as f:
+            data = yaml.safe_load(f)
+            data.update(new_data)
+    else:
+        data = new_data
+    data = {k: data[k] for k in sorted(data)}
+    yaml.dump(
+        data,
+        open(file_path, "w"),
+    )
 
 
 def generate_id():
+    global words
     timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     words = random.choices(words, k=2)
     return f"{timestamp}_{"_".join(words)}"
 
+
 def validate_experiment_name(name: str) -> bool:
-    return (
-        name is not None
-        and name != ""
-        and not name.isspace()
-        and name.isascii()
-        and len(name) < 100
-        and len(name) > 1
-    )
+    return True
+    # return (
+    #     name != ""
+    #     and not name.isspace()
+    #     and name.isascii()
+    #     and len(name) < 100
+    #     and len(name) > 1
+    # )
 
 
 words = [

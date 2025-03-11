@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "experiment_tracker"
-description = "A simple machine learning tracking library"
+name = "experiment_utils"
+description = "A simple machine learning tracking and management library"
 version = "0.0.1"
 dependencies = ["pyyaml", "polars", "numpy", "ipykernel"]
