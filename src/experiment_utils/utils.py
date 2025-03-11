@@ -3,7 +3,7 @@ import datetime
 import random
 import yaml
 import os
-
+import pandas as pd
 
 class compare_fns:
     @staticmethod
@@ -49,6 +49,58 @@ def validate_experiment_name(name: str) -> bool:
     #     and len(name) < 100
     #     and len(name) > 1
     # )
+
+
+def flatten_dict(dd, separator="_", prefix=""):
+    """
+    Flattens a nested dictionary into a single dictionary with concatenated keys.
+
+    Args:
+        dd (dict): The nested dictionary to flatten.
+        separator (str, optional): The separator to use when concatenating keys. Defaults to '_'.
+        prefix (str, optional): The prefix to add to the keys. Defaults to ''.
+
+    Returns:
+        dict: A flattened dictionary.
+    """
+    items = []
+    for k, v in dd.items():
+        new_key = prefix + separator + k if prefix else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, separator=separator, prefix=new_key).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def create_dataframe_from_nested_dict(data: dict) -> pd.DataFrame:
+    """
+    Creates a Pandas DataFrame from a nested dictionary with a two-tier header.
+
+    Args:
+        data (dict): A dictionary of dictionaries of dictionaries.
+
+    Returns:
+        pandas.DataFrame: A DataFrame with a two-tier header.
+    """
+
+    # Flatten each inner dictionary
+    flattened_data = {
+        outer_key: flatten_dict(inner_dict) for outer_key, inner_dict in data.items()
+    }
+
+    # Create a DataFrame from the flattened data
+    df = pd.DataFrame.from_dict(flattened_data, orient="index")
+
+    # Split the columns into two levels
+    split_columns = [
+        col.split("_", 1) for col in df.columns
+    ]  # Split only at the first underscore
+
+    # Create MultiIndex
+    df.columns = pd.MultiIndex.from_tuples(split_columns)
+
+    return df
 
 
 words = [

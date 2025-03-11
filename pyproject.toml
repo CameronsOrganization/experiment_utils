@@ -6,4 +6,4 @@ build-backend = "setuptools.build_meta"
 name = "experiment_utils"
 description = "A simple machine learning tracking and management library"
 version = "0.0.1"
-dependencies = ["pyyaml", "polars", "numpy", "ipykernel"]
+dependencies = ["pyyaml", "pandas", "Jinja2"]
