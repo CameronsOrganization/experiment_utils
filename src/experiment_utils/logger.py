@@ -12,14 +12,17 @@ class Logger:
         log_path: str = "./.logs/",
     ):
         self.log_path = log_path
+        self.experiment_path = None
+        self.experiment_id = None
+        self.experiment_name = None
 
-    def is_experiment(self, experiment_path: str) -> bool:
-        assert os.path.isdir(
-            experiment_path
-        ), f"Invalid experiment path: {experiment_path}"
-        return True
+    def is_experiment(self) -> bool:
+        return os.path.isdir(self.experiment_path)
 
-    def start_experiment(self, experiment_name: Optional[str] = None) -> None:
+    def start_experiment(
+        self,
+        experiment_name: Optional[str] = None,
+    ) -> None:
         assert validate_experiment_name(
             experiment_name
         ), f"Invalid experiment name: {experiment_name}"
@@ -47,25 +50,25 @@ class Logger:
             )
 
     def resume_experiment(self, experiment_path: str) -> None:
-        self.is_experiment(experiment_path)
+        assert self.is_experiment(experiment_path)
         self.experiment_path = experiment_path
 
     def end_experiment(self):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         self.experiment_path = None
         self.experiment_name = None
         self.experiment_id = None
 
     def log_param(self, key: str, value: Any):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         update_yaml(os.path.join(self.experiment_path, "params.yaml"), {key: value})
 
     def log_params(self, params: dict):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         update_yaml(os.path.join(self.experiment_path, "params.yaml"), params)
 
     def log_value(self, key: str, value: Any, step: Optional[int] = None):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         if not os.path.isdir(os.path.join(self.experiment_path, "values")):
             os.makedirs(os.path.join(self.experiment_path, "values"))
         file = os.path.join(self.experiment_path, "values", f"{key}.csv")
@@ -78,14 +81,14 @@ class Logger:
             writer.writerow([step, value])
 
     def log_values(self, values: dict, step: Optional[int] = None):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         for key, value in values.items():
             self.log_value(key, value, step)
 
     def log_metric(
         self, key: str, value: Any, compare_fn: Callable, step: Optional[int] = None
     ):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         if not os.path.isdir(os.path.join(self.experiment_path, "metrics")):
             os.makedirs(os.path.join(self.experiment_path, "metrics"))
         file = os.path.join(self.experiment_path, "metrics", f"{key}.csv")
@@ -113,7 +116,7 @@ class Logger:
     def log_metrics(
         self, metrics: dict, compare_fn: Callable, step: Optional[int] = None
     ):
-        self.is_experiment(self.experiment_path)
+        assert self.is_experiment()
         for key, value in metrics.items():
             self.log_metric(key, value, compare_fn, step)
 
