@@ -5,7 +5,12 @@ import yaml
 import os
 import pandas as pd
 
+
 class compare_fns:
+    @staticmethod
+    def new(new: Any, old: Any = None) -> Any:
+        return new
+
     @staticmethod
     def max(new: Any, old: Any = None) -> Any:
         if old is None:

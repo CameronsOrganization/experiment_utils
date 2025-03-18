@@ -3,7 +3,7 @@ import os
 import yaml
 import csv
 
-from .utils import generate_id, validate_experiment_name, update_yaml
+from .utils import generate_id, validate_experiment_name, update_yaml, compare_fns
 
 
 class Logger:
@@ -67,7 +67,13 @@ class Logger:
         assert self.is_experiment()
         update_yaml(os.path.join(self.experiment_path, "params.yaml"), params)
 
-    def log_value(self, key: str, value: Any, step: Optional[int] = None):
+    def log_value(
+        self,
+        key: str,
+        value: Any,
+        step: Optional[int] = None,
+        compare_fn: Callable = compare_fns.new,
+    ):
         assert self.is_experiment()
         if not os.path.isdir(os.path.join(self.experiment_path, "values")):
             os.makedirs(os.path.join(self.experiment_path, "values"))
@@ -80,45 +86,33 @@ class Logger:
             writer = csv.writer(f)
             writer.writerow([step, value])
 
-    def log_values(self, values: dict, step: Optional[int] = None):
-        assert self.is_experiment()
-        for key, value in values.items():
-            self.log_value(key, value, step)
-
-    def log_metric(
-        self, key: str, value: Any, compare_fn: Callable, step: Optional[int] = None
-    ):
-        assert self.is_experiment()
-        if not os.path.isdir(os.path.join(self.experiment_path, "metrics")):
-            os.makedirs(os.path.join(self.experiment_path, "metrics"))
-        file = os.path.join(self.experiment_path, "metrics", f"{key}.csv")
-        if not os.path.isfile(file):
-            with open(file, "w") as f:
-                writer = csv.writer(f)
-                writer.writerow(["step", "value"])
-        with open(file, "a") as f:
-            writer = csv.writer(f)
-            writer.writerow([step, value])
-
-        file = os.path.join(self.experiment_path, "metrics.yaml")
+        file = os.path.join(self.experiment_path, "values.yaml")
         if os.path.isfile(file):
             with open(file, "r") as f:
-                metrics = yaml.safe_load(f)
+                values = yaml.safe_load(f)
         else:
-            metrics = {}
-        metrics[key] = compare_fn(
+            values = {}
+        values[key] = compare_fn(
             value,
-            metrics.get(key, None),
+            values.get(key, None),
         )
-        with open(os.path.join(self.experiment_path, "metrics.yaml"), "w") as f:
-            yaml.dump(metrics, f)
+        with open(os.path.join(self.experiment_path, "values.yaml"), "w") as f:
+            yaml.dump(values, f)
 
-    def log_metrics(
-        self, metrics: dict, compare_fn: Callable, step: Optional[int] = None
+    def log_values(
+        self,
+        value_map: dict,
+        step: Optional[int] = None,
+        compare_fn: Callable = compare_fns.new,
     ):
         assert self.is_experiment()
-        for key, value in metrics.items():
-            self.log_metric(key, value, compare_fn, step)
+        for key, value in value_map.items():
+            self.log_value(
+                key=key,
+                value=value,
+                step=step,
+                compare_fn=compare_fn,
+            )
 
     def __repr__(self):
         return f"Logger(log_path={self.log_path})"
