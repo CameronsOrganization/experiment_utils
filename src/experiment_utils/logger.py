@@ -49,9 +49,13 @@ class Logger:
                 f,
             )
 
-    def resume_experiment(self, experiment_path: str) -> None:
-        assert self.is_experiment(experiment_path)
-        self.experiment_path = experiment_path
+    def resume_experiment(self, experiment_subpath: str) -> None:
+        self.experiment_path = os.path.join(self.log_path, experiment_subpath)
+        assert self.is_experiment()
+        with open(os.path.join(self.experiment_path, "meta.yaml"), "r") as f:
+            meta = yaml.safe_load(f)
+        self.experiment_id = meta["experiment_id"]
+        self.experiment_name = meta["experiment_name"]
 
     def end_experiment(self):
         assert self.is_experiment()
@@ -75,6 +79,7 @@ class Logger:
         compare_fn: Callable = compare_fns.new,
     ):
         assert self.is_experiment()
+        # Update the values csv file
         if not os.path.isdir(os.path.join(self.experiment_path, "values")):
             os.makedirs(os.path.join(self.experiment_path, "values"))
         file = os.path.join(self.experiment_path, "values", f"{key}.csv")
@@ -86,13 +91,15 @@ class Logger:
             writer = csv.writer(f)
             writer.writerow([step, value])
 
+        # Update the value.yaml file
         file = os.path.join(self.experiment_path, "values.yaml")
         if os.path.isfile(file):
             with open(file, "r") as f:
                 values = yaml.safe_load(f)
         else:
             values = {}
-        values[key] = compare_fn(
+        key_ = f"{"last" if compare_fn is compare_fns.new else "best"}_{key}"
+        values[key_] = compare_fn(
             value,
             values.get(key, None),
         )
