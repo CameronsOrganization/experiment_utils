@@ -34,9 +34,9 @@ def update_yaml(file_path, new_data):
 
 
 def generate_id():
-    global words
+    global WORDS_LIST
     timestamp = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-    words = random.choices(words, k=2)
+    words = random.choices(WORDS_LIST, k=2)
     return f"{timestamp}_{"_".join(words)}"
 
 
@@ -103,7 +103,7 @@ def create_dataframe_from_nested_dict(data: dict) -> pd.DataFrame:
     return df
 
 
-words = [
+WORDS_LIST = [
     "search",
     "online",
     "people",
