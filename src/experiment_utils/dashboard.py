@@ -81,7 +81,11 @@ class Dashboard:
 
     def plot_value(self, key):
         df = self.df_value(key)
-        plt.plot(df)
+        for col in df.columns:
+            d = df[col]
+            d = d[d.notna()][d.notnull()]
+            plt.plot(d, label=col)
+        # plt.plot(df)
         plt.xlabel("Step")
         plt.ylabel(key)
         plt.legend(df.columns)
