@@ -3,7 +3,19 @@ import yaml
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from bokeh.plotting import figure, show
+from bokeh.io import output_notebook, curdoc
+from bokeh.models import HoverTool
+from bokeh.palettes import Category10
+
+output_notebook(hide_banner=True)
+curdoc().theme = "carbon"
+colors = Category10[10]
+
+
 from .utils import create_dataframe_from_nested_dict
+
+pd.set_option("display.float_format", lambda x: "%.3e" % x)
 
 
 class Dashboard:
@@ -80,16 +92,45 @@ class Dashboard:
         return experiments
 
     def plot_value(self, key):
-        df = self.df_value(key)
-        for col in df.columns:
-            d = df[col]
-            d = d[d.notna()][d.notnull()]
-            plt.plot(d, label=col)
-        # plt.plot(df)
-        plt.xlabel("Step")
-        plt.ylabel(key)
-        plt.legend(df.columns)
-        plt.show()
+        df = (
+            self.df_value(key)
+            .reset_index()
+            .melt("step", value_name="value", var_name="var")
+        )
+        p = figure(x_axis_label="Step", y_axis_label=key)
+        for i, (legend_label, d) in enumerate(df.groupby("var")):
+            d["color"] = colors[i % 10]
+            p.line(
+                "step",
+                "value",
+                source=d,
+                legend_label=legend_label,
+                line_width=2,
+                color=colors[i % 10],
+            )
+        p.add_tools(
+            HoverTool(
+                tooltips=[
+                    ("Experiment", "@var"),
+                    ("Step", "$x{0}"),
+                    (key, "$y"),
+                    ("Color", "$swatch:color"),
+                ],
+                mode="mouse",
+                line_policy="none",
+                muted_policy="ignore"
+            )
+        )
+        p.sizing_mode = "stretch_width"
+        p.legend.click_policy = "mute"
+        p.legend.title = "Experiment"
+        p.legend.title_text_font_style = "bold"
+        p.legend.title_text_color = "white"
+        p.legend.label_text_color = "white"
+        p.legend.label_text_font_style = "bold"
+        p.legend.background_fill_color = "black"
+        p.legend.background_fill_alpha = 0.2
+        show(p)
 
     def __repr__(self):
         return f"Dashboard(log_path={self.log_path})"
