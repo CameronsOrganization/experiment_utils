@@ -57,12 +57,6 @@ class Logger:
         self.experiment_id = meta["experiment_id"]
         self.experiment_name = meta["experiment_name"]
 
-    def end_experiment(self):
-        assert self.is_experiment()
-        self.experiment_path = None
-        self.experiment_name = None
-        self.experiment_id = None
-
     def log_param(self, key: str, value: Any):
         assert self.is_experiment()
         update_yaml(os.path.join(self.experiment_path, "params.yaml"), {key: value})

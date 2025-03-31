@@ -91,13 +91,17 @@ class Dashboard:
         experiments = pd.concat(experiments, axis=1)
         return experiments
 
-    def plot_value(self, key):
+    def plot_value(self, key, log_scale=False):
         df = (
             self.df_value(key)
             .reset_index()
             .melt("step", value_name="value", var_name="var")
         )
-        p = figure(x_axis_label="Step", y_axis_label=key)
+        p = figure(
+            x_axis_label="Step",
+            y_axis_label=key,
+            y_axis_type="log" if log_scale else "linear",
+        )
         for i, (legend_label, d) in enumerate(df.groupby("var")):
             d["color"] = colors[i % 10]
             p.line(
@@ -107,6 +111,15 @@ class Dashboard:
                 legend_label=legend_label,
                 line_width=2,
                 color=colors[i % 10],
+            )
+            p.scatter(
+                "step",
+                "value",
+                source=d.iloc[-1:],
+                size=8,
+                color=colors[i % 10],
+                legend_label=legend_label,
+                alpha=0.5,
             )
         p.add_tools(
             HoverTool(
@@ -118,7 +131,7 @@ class Dashboard:
                 ],
                 mode="mouse",
                 line_policy="none",
-                muted_policy="ignore"
+                muted_policy="ignore",
             )
         )
         p.sizing_mode = "stretch_width"
@@ -130,6 +143,9 @@ class Dashboard:
         p.legend.label_text_font_style = "bold"
         p.legend.background_fill_color = "black"
         p.legend.background_fill_alpha = 0.2
+        p.yaxis.axis_label_text_font_size = "20pt"
+        p.yaxis.major_label_text_font_size = "16pt"
+        p.xaxis.major_label_text_font_size = "16pt"
         show(p)
 
     def __repr__(self):
